@@ -110,36 +110,57 @@ class Order(DominosFormat):
             
         return self
         
-    def add_coupon(self, coupon_code, qty=1):
-        """Add a coupon to the order."""
-        if isinstance(coupon_code, str):
-            # Simple coupon code
-            coupon_item = {
-                'Code': coupon_code,
-                'Qty': qty,
-                'ID': len(self.coupons) + 1,
-                'isNew': True
-            }
-        elif isinstance(coupon_code, dict):
-            # Coupon object
-            coupon_item = coupon_code.copy()
-            coupon_item.update({
-                'Qty': qty,
-                'ID': len(self.coupons) + 1,
-                'isNew': True
-            })
-        else:
-            raise TypeError("Coupon must be a string code or dictionary")
+    def add_coupon(self, coupon):
+        """Add a coupon to the order.
+        
+        Args:
+            coupon: Can be a Coupon object, dict with coupon data, or string code
             
-        self.coupons.append(coupon_item)
+        Returns:
+            self: Returns the order instance for method chaining
+        """
+        from .coupon import Coupon
+        
+        if isinstance(coupon, Coupon):
+            # Coupon object - set proper ID and add directly
+            coupon.id = len(self.coupons) + 1
+            self.coupons.append(coupon)
+        elif isinstance(coupon, dict):
+            # Dictionary with coupon data - create Coupon object
+            code = coupon.get('Code') or coupon.get('code')
+            qty = coupon.get('Qty') or coupon.get('qty', 1)
+            if not code:
+                raise ValueError("Coupon dictionary must have 'Code' or 'code' field")
+            coupon_obj = Coupon(code, qty)
+            coupon_obj.id = len(self.coupons) + 1
+            self.coupons.append(coupon_obj)
+        elif isinstance(coupon, str):
+            # String code - create Coupon object
+            coupon_obj = Coupon(coupon, 1)
+            coupon_obj.id = len(self.coupons) + 1
+            self.coupons.append(coupon_obj)
+        else:
+            raise TypeError("Coupon must be a Coupon object, dictionary, or string code")
+            
         return self
         
-    def remove_coupon(self, coupon_code):
-        """Remove a coupon from the order."""
-        for i, coupon in enumerate(self.coupons):
-            if coupon.get('Code') == coupon_code:
-                return self.coupons.pop(i)
-        raise ValueError(f"Coupon {coupon_code} not found in order")
+    def remove_coupon(self, coupon):
+        """Remove a coupon from the order.
+        
+        Args:
+            coupon: The coupon object to remove (same object that was added)
+            
+        Returns:
+            self: Returns the order instance for method chaining
+            
+        Raises:
+            ValueError: If the coupon is not found in the order
+        """
+        try:
+            self.coupons.remove(coupon)
+        except ValueError:
+            raise ValueError(f"Coupon not found in order")
+        return self
         
     def add_item(self, item, qty=1):
         """Add an item to the order."""
@@ -197,6 +218,17 @@ class Order(DominosFormat):
     @property
     def data(self):
         """Get order data in legacy format for backwards compatibility."""
+        # Format coupons for API
+        formatted_coupons = []
+        for coupon in self.coupons:
+            if hasattr(coupon, 'formatted'):
+                formatted_coupons.append(coupon.formatted)
+            elif isinstance(coupon, dict):
+                formatted_coupons.append(coupon)
+            else:
+                # Fallback for any other type
+                formatted_coupons.append({'Code': str(coupon), 'Qty': 1, 'ID': 1, 'isNew': True})
+        
         return {
             'Address': {
                 'Street': self.address.street,
@@ -205,7 +237,7 @@ class Order(DominosFormat):
                 'PostalCode': self.address.postal_code,
                 'Type': 'House'
             },
-            'Coupons': self.coupons,
+            'Coupons': formatted_coupons,
             'CustomerID': self.customer_id,
             'Extension': self.extension,
             'OrderChannel': self.order_channel,
@@ -232,6 +264,53 @@ class Order(DominosFormat):
             'AmountsBreakdown': self.amounts_breakdown.formatted if hasattr(self.amounts_breakdown, 'formatted') else {}
         }
     
+    @property
+    def formatted(self):
+        """Get order data formatted for the Dominos API."""
+        # Get base formatted data from parent class
+        data = super().formatted
+        
+        # Format coupons properly
+        formatted_coupons = []
+        for coupon in self.coupons:
+            if hasattr(coupon, 'formatted'):
+                formatted_coupons.append(coupon.formatted)
+            elif isinstance(coupon, dict):
+                formatted_coupons.append(coupon)
+            else:
+                # Fallback for any other type
+                formatted_coupons.append({'Code': str(coupon), 'Qty': 1, 'ID': 1, 'isNew': True})
+        
+        # Override the coupons with properly formatted ones
+        data['Coupons'] = formatted_coupons
+        
+        # Format products properly
+        formatted_products = []
+        for product in self.products:
+            if hasattr(product, 'formatted'):
+                formatted_products.append(product.formatted)
+            elif isinstance(product, dict):
+                formatted_products.append(product)
+            else:
+                # Fallback
+                formatted_products.append(product)
+        
+        data['Products'] = formatted_products
+        
+        # Format address properly
+        if hasattr(self.address, 'formatted'):
+            data['Address'] = self.address.formatted
+        else:
+            data['Address'] = {
+                'Street': self.address.street if hasattr(self.address, 'street') else '',
+                'City': self.address.city if hasattr(self.address, 'city') else '',
+                'Region': self.address.region if hasattr(self.address, 'region') else '',
+                'PostalCode': self.address.postal_code if hasattr(self.address, 'postal_code') else '',
+                'Type': 'House'
+            }
+        
+        return data
+
     def _send(self, url, merge=True, country=COUNTRY_USA):
         """Send order data to the API."""
         urls = Urls(country)
