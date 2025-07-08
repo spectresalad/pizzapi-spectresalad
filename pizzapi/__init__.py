@@ -1,5 +1,4 @@
 from .address import Address
-from .coupon import Coupon
 from .customer import Customer
 from .menu import Menu
 from .order import Order

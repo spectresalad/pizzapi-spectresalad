@@ -114,33 +114,25 @@ class Order(DominosFormat):
         """Add a coupon to the order.
         
         Args:
-            coupon: Can be a Coupon object, dict with coupon data, or string code
+            coupon: Can be a dict with coupon data or string code
             
         Returns:
             self: Returns the order instance for method chaining
         """
-        from .coupon import Coupon
-        
-        if isinstance(coupon, Coupon):
-            # Coupon object - set proper ID and add directly
-            coupon.id = len(self.coupons) + 1
-            self.coupons.append(coupon)
-        elif isinstance(coupon, dict):
-            # Dictionary with coupon data - create Coupon object
-            code = coupon.get('Code') or coupon.get('code')
-            qty = coupon.get('Qty') or coupon.get('qty', 1)
-            if not code:
+        if isinstance(coupon, dict):
+            # Dictionary with coupon data - ensure it has required Code field
+            if 'Code' not in coupon and 'code' not in coupon:
                 raise ValueError("Coupon dictionary must have 'Code' or 'code' field")
-            coupon_obj = Coupon(code, qty)
-            coupon_obj.id = len(self.coupons) + 1
-            self.coupons.append(coupon_obj)
+            # Normalize to use 'Code' (uppercase)
+            if 'code' in coupon and 'Code' not in coupon:
+                coupon['Code'] = coupon.pop('code')
+            self.coupons.append(coupon)
         elif isinstance(coupon, str):
-            # String code - create Coupon object
-            coupon_obj = Coupon(coupon, 1)
-            coupon_obj.id = len(self.coupons) + 1
+            # String code - create simple dict
+            coupon_obj = {'Code': coupon}
             self.coupons.append(coupon_obj)
         else:
-            raise TypeError("Coupon must be a Coupon object, dictionary, or string code")
+            raise TypeError("Coupon must be a dictionary or string code")
             
         return self
         
@@ -218,17 +210,6 @@ class Order(DominosFormat):
     @property
     def data(self):
         """Get order data in legacy format for backwards compatibility."""
-        # Format coupons for API
-        formatted_coupons = []
-        for coupon in self.coupons:
-            if hasattr(coupon, 'formatted'):
-                formatted_coupons.append(coupon.formatted)
-            elif isinstance(coupon, dict):
-                formatted_coupons.append(coupon)
-            else:
-                # Fallback for any other type
-                formatted_coupons.append({'Code': str(coupon), 'Qty': 1, 'ID': 1, 'isNew': True})
-        
         return {
             'Address': {
                 'Street': self.address.street,
@@ -237,7 +218,7 @@ class Order(DominosFormat):
                 'PostalCode': self.address.postal_code,
                 'Type': 'House'
             },
-            'Coupons': formatted_coupons,
+            'Coupons': self.coupons,
             'CustomerID': self.customer_id,
             'Extension': self.extension,
             'OrderChannel': self.order_channel,
@@ -270,19 +251,8 @@ class Order(DominosFormat):
         # Get base formatted data from parent class
         data = super().formatted
         
-        # Format coupons properly
-        formatted_coupons = []
-        for coupon in self.coupons:
-            if hasattr(coupon, 'formatted'):
-                formatted_coupons.append(coupon.formatted)
-            elif isinstance(coupon, dict):
-                formatted_coupons.append(coupon)
-            else:
-                # Fallback for any other type
-                formatted_coupons.append({'Code': str(coupon), 'Qty': 1, 'ID': 1, 'isNew': True})
-        
-        # Override the coupons with properly formatted ones
-        data['Coupons'] = formatted_coupons
+        # Use coupons directly as they are already simple objects
+        data['Coupons'] = self.coupons
         
         # Format products properly
         formatted_products = []
