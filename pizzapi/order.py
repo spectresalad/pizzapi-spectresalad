@@ -194,29 +194,6 @@ class Order(DominosFormat):
         self.payments.append(payment_data)
         return self
 
-    # TODO: Implement item options
-    # TODO: Add exception handling for KeyErrors
-    def add_item(self, code, qty=1, options=[]):
-        item = self.menu.variants[code]
-        item.update(ID=1, isNew=True, Qty=qty, AutoRemove=False)
-        self.data['Products'].append(item)
-        return item
-
-    # TODO: Raise Exception when index isn't found
-    def remove_item(self, code):
-        codes = [x['Code'] for x in self.data['Products']]
-        return self.data['Products'].pop(codes.index(code))
-
-    def add_coupon(self, code, qty=1):
-        item = self.menu.variants[code]
-        item.update(ID=1, isNew=True, Qty=qty, AutoRemove=False)
-        self.data['Coupons'].append(item)
-        return item
-
-    def remove_coupon(self, code):
-        codes = [x['Code'] for x in self.data['Coupons']]
-        return self.data['Coupons'].pop(codes.index(code))
-
     @property
     def data(self):
         """Get order data in legacy format for backwards compatibility."""
