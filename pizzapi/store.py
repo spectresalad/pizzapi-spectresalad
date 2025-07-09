@@ -3,7 +3,8 @@ from .urls import Urls, COUNTRY_USA
 
 
 class Store(object):
-    """The interface to the Store API
+    """
+    The interface to the Store API
 
     You can use this to find store information about stores near an
     address, or to find the closest store to an address.

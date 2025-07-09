@@ -4,7 +4,8 @@ from .dominos_format import DominosFormat
 
 
 class Tracking(DominosFormat):
-    """Advanced tracking class that provides detailed order tracking information.
+    """
+    Advanced tracking class that provides detailed order tracking information.
     
     This class provides methods to track orders by phone number and gives 
     access to detailed tracking data.

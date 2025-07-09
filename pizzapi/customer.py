@@ -3,7 +3,8 @@ from .dominos_format import DominosFormat
 
 
 class Customer(DominosFormat):
-    """The Customer orders a pizza.
+    """
+    The Customer orders a pizza.
 
     You need a Customer to create an Order. The proprietors of the API
     use this information, presumably for nefarious Pizza Purposes.

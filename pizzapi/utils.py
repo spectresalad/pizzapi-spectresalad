@@ -61,7 +61,8 @@ def default_parameters(obj, parameters):
 # TODO: Can we wrap this up, so the callers don't have to worry about the 
     # complexity of two types of requests? 
 def request_json(url, **kwargs):
-    """Send a GET request to one of the API endpoints that returns JSON.
+    """
+    Send a GET request to one of the API endpoints that returns JSON.
 
     Send a GET request to an endpoint, ideally a URL from the urls module.
     The endpoint is formatted with the kwargs passed to it.
@@ -74,7 +75,8 @@ def request_json(url, **kwargs):
 
 
 def request_xml(url, **kwargs):
-    """Send an XML request to one of the API endpoints that returns XML.
+    """
+    Send an XML request to one of the API endpoints that returns XML.
     
     This is in every respect identical to request_json. 
     """

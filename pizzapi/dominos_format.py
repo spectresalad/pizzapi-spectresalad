@@ -3,7 +3,8 @@ from .utils import to_pascal_case, to_camel_case, default_parameters
 
 
 class DominosFormat:
-    """Base class that provides common formatting functionality for Dominos API objects.
+    """
+    Base class that provides common formatting functionality for Dominos API objects.
     
     This class handles the conversion between Python snake_case conventions
     and the Dominos API's PascalCase/camelCase requirements.

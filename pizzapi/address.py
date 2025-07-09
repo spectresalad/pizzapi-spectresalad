@@ -6,7 +6,8 @@ import re
 
 
 class Address(DominosFormat):
-    """Create an address, for finding stores and placing orders.
+    """
+    Create an address, for finding stores and placing orders.
 
     The Address object describes a street address in North America (USA or
     Canada, for now). Callers can use the Address object's methods to find
@@ -31,7 +32,7 @@ class Address(DominosFormat):
         
         # Handle string parsing
         if isinstance(street, str) and not city and not region and not zip:
-            self._parse_address_string(street)
+            self.parse_address_string(street)
         else:
             self.street = str(street).strip()
             self.city = str(city).strip()
@@ -48,7 +49,7 @@ class Address(DominosFormat):
         self.urls = Urls(country)
         self.country = country
         
-    def _parse_address_string(self, address_string):
+    def parse_address_string(self, address_string):
         """Parse a full address string into components."""
         # Simple parsing - can be enhanced
         parts = address_string.split(', ')
@@ -113,19 +114,9 @@ class Address(DominosFormat):
             'line2': self.line2
         }
 
-    def nearby_stores(self, service='Delivery'):
-        """Query the API to find nearby stores.
-
-        nearby_stores will filter the information we receive from the API
-        to exclude stores that are not currently online (!['IsOnlineNow']),
-        and stores that are not currently in service (!['ServiceIsOpen']).
-        """
-        data = request_json(self.urls.find_url(), line1=self.line1, line2=self.line2, type=service)
-        return [Store(x, self.country) for x in data['Stores']
-                if x['IsOnlineNow'] and x['ServiceIsOpen'][service]]
-
     def closest_store(self, service='Delivery'):
-        stores = self.nearby_stores(service=service)
-        if not stores:
+        from .nearby_stores import NearbyStores
+        nearby = NearbyStores(self, service)
+        if not nearby.stores:
             raise Exception('No local stores are currently open')
-        return stores[0]
+        return nearby.stores[0]

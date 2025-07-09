@@ -4,7 +4,8 @@ from .urls import Urls, COUNTRY_USA
 
 
 class Image:
-    """Handles fetching and processing product images from Dominos API.
+    """
+    Handles fetching and processing product images from Dominos API.
     
     The Image class can fetch product images and convert them to base64
     for use in applications.

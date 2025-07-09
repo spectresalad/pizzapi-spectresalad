@@ -2,7 +2,8 @@ from .dominos_format import DominosFormat
 
 
 class Item(DominosFormat):
-    """Represents a menu item that can be added to an order.
+    """
+    Represents a menu item that can be added to an order.
     
     The Item class extends DominosFormat to provide proper formatting
     for the Dominos API. Items can be products, sides, drinks, etc.

@@ -2,7 +2,8 @@ from .dominos_format import DominosFormat
 
 
 class AmountsBreakdown(DominosFormat):
-    """Represents a detailed breakdown of order amounts and charges.
+    """
+    Represents a detailed breakdown of order amounts and charges.
     
     The AmountsBreakdown class provides detailed information about
     how the total order amount is calculated, including taxes,

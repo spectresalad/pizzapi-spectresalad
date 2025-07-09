@@ -8,4 +8,5 @@
 ## Contributors
 
 ### [Arie van Luttikhuizen](https://github.com/aluttik)
+### [Spectresalad](https://github.com/spectresalad)
 ###### Original Author

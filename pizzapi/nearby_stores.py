@@ -5,7 +5,8 @@ from .urls import Urls, COUNTRY_USA
 
 
 class NearbyStores:
-    """Find nearby Dominos stores based on an address.
+    """
+    Find nearby Dominos stores based on an address.
     
     The NearbyStores class can find stores near a given address and
     filter them based on service type (Delivery, Carryout, etc.).

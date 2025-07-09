@@ -2,7 +2,8 @@ COUNTRY_USA = 'us'
 COUNTRY_CANADA = 'ca'
 
 class Urls(object):
-    """URLs for doing different things to the API.
+    """
+    URLs for doing different things to the API.
 
     This initializes some dicts that contain country-unique information
     on how to interact with the API, and some getter methods for getting
