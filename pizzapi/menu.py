@@ -36,7 +36,8 @@ class MenuItem(object):
 
 
 class Menu(object):
-    """    The Menu is our primary interface with the API. 
+    """    
+    The Menu is our primary interface with the API. 
 
     This is far and away the most complicated class - it wraps up most of
     the logic that parses the information we get from the API.
@@ -249,8 +250,8 @@ class Menu(object):
             category.subcategories.append(new_subcategory)
         for product_code in category_data['Products']:
             if product_code not in self.menu_by_code:
-                # Log missing product but don't fail completely
-                print(f"Warning: Product not found in menu: {product_code} in category {category.code}")
+                # Instead of raising exception, just continue (skip missing products)
+                print(f"Warning: Product not found: {product_code} in category {category.code}")
                 continue
             product = self.menu_by_code[product_code]
             category.products.append(product)
@@ -289,13 +290,65 @@ class Menu(object):
     # TODO: Return the search results and print in different method
     # TODO: Import fuzzy search module or allow lists as search conditions
     def search(self, **conditions):
-        max_len = lambda x: 2 + max(len(v[x]) for v in list(self.variants.values()))
+        """
+        Search for menu items based on specified conditions.
+        Returns a list of matching items instead of printing them.
+        """
+        results = []
+        if not self.variants:
+            print("DEBUG: No variants in menu")
+            return results
+        
+        print(f"DEBUG: Searching {len(self.variants)} variants with conditions: {conditions}")
+        
         for v in self.variants.values():
-            v['Toppings'] = dict(x.split('=', 1) for x in v['Tags']['DefaultToppings'].split(',') if x)
-            if all(y in v.get(x, '') for x, y in conditions.items()):
-                print(v['Code'], end=' ')
-                print(v['Name'].encode('ascii', 'ignore').decode('ascii'), end=' ')
-                print('$' + v['Price'], end=' ')
-                print(v['SizeCode'], end=' ')
-                print(v['ProductCode'], end=' ')
-                print(v['Toppings'])
+            # Safely handle missing Tags or DefaultToppings
+            try:
+                if 'Tags' in v and 'DefaultToppings' in v['Tags']:
+                    v['Toppings'] = dict(x.split('=', 1) for x in v['Tags']['DefaultToppings'].split(',') if x)
+                else:
+                    v['Toppings'] = {}
+            except (KeyError, AttributeError, ValueError):
+                v['Toppings'] = {}
+            
+            # Check if this variant matches all the search conditions
+            matches = True
+            for field_name, search_value in conditions.items():
+                field_value = v.get(field_name, '')
+                
+                # Convert both to lowercase strings for case-insensitive comparison
+                field_str = str(field_value).lower()
+                search_str = str(search_value).lower()
+                
+                # Check if search term is contained in the field value
+                if search_str not in field_str:
+                    matches = False
+                    break
+            
+            if matches:
+                result = {
+                    'Code': v.get('Code', ''),
+                    'Name': v.get('Name', '').encode('ascii', 'ignore').decode('ascii'),
+                    'Price': v.get('Price', ''),
+                    'SizeCode': v.get('SizeCode', ''),
+                    'ProductCode': v.get('ProductCode', ''),
+                    'Toppings': v.get('Toppings', {}),
+                    'FullData': v  # Include full variant data for advanced use
+                }
+                results.append(result)
+        
+        print(f"DEBUG: Found {len(results)} matching results")
+        return results
+
+    def search_and_print(self, **conditions):
+        """
+        Legacy method that prints search results (for backwards compatibility).
+        """
+        results = self.search(**conditions)
+        for result in results:
+            print(result['Code'], end=' ')
+            print(result['Name'], end=' ')
+            print('$' + result['Price'], end=' ')
+            print(result['SizeCode'], end=' ')
+            print(result['ProductCode'], end=' ')
+            print(result['Toppings'])
