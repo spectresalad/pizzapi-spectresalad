@@ -62,14 +62,6 @@ class Order(DominosFormat):
         self.tags = {}
         self.user_agent = ''
         self.version = '1.0'
-        
-        # Legacy compatibility properties
-        self.store = None
-        self.menu = None
-        self.customer = None
-        
-        if customer:
-            self.add_customer(customer)
             
     def order_in_future(self, date):
         """Schedule the order for a future date."""
@@ -89,27 +81,6 @@ class Order(DominosFormat):
         if hasattr(self, 'future_order_time'):
             delattr(self, 'future_order_time')
             
-    def add_customer(self, customer):
-        """Add customer information to the order."""
-        if not customer:
-            raise ValueError("Customer is required")
-            
-        self.customer = customer
-        
-        # Extract customer info
-        if hasattr(customer, 'first_name'):
-            self.first_name = customer.first_name
-        if hasattr(customer, 'last_name'):
-            self.last_name = customer.last_name
-        if hasattr(customer, 'email'):
-            self.email = customer.email
-        if hasattr(customer, 'phone'):
-            self.phone = customer.phone
-        if hasattr(customer, 'address'):
-            self.address = customer.address
-            
-        return self
-        
     def add_coupon(self, coupon):
         """Add a coupon to the order.
         
