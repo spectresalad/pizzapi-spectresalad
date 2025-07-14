@@ -19,7 +19,7 @@ class Order(DominosFormat):
     Updated with better structure and methods.
     """
     
-    def __init__(self, customer=None):
+    def __init__(self):
         super().__init__()
         
         # Initialize comprehensive order structure
